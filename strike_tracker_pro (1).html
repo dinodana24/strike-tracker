@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strike Tracker Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+
+    <div class="min-h-full flex flex-col">
+        <!-- Header -->
+        <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-rose-500/20">
+                        ⚡
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">Strike Tracker Pro</h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Rollover punishment system & Authority Access</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Toggle Theme">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+
+                    <!-- Auth Section -->
+                    <div id="auth-container" class="flex items-center space-x-2">
+                        <div id="user-info" class="hidden items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">
+                            <span id="user-display-name" class="text-xs font-semibold">User</span>
+                            <span id="admin-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-600 text-white">ADMIN</span>
+                        </div>
+                        <button id="auth-action-btn" onclick="handleAuthAction()" class="inline-flex items-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm rounded-xl shadow-lg shadow-rose-600/25 transition">
+                            Sign In / Admin
+                        </button>
+                    </div>
+
+                    <button id="add-member-btn" onclick="openAddModal()" class="hidden inline-flex items-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm rounded-xl shadow-lg shadow-rose-600/25 transition duration-150 ease-in-out">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add Member
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Layout -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Members</p>
+                        <h3 id="stat-total-members" class="text-2xl font-bold mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xl">👥</div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Pending Punishments</p>
+                        <h3 id="stat-pending-punishments" class="text-2xl font-bold mt-1 text-rose-600 dark:text-rose-400">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-xl">⚠️</div>
+                </div>
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Lifetime Strikes Issued</p>
+                        <h3 id="stat-total-strikes" class="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xl">⚡</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+                <div class="relative flex-1">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
+                    <input type="text" id="search-input" oninput="handleSearch()" placeholder="Search members by name..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                </div>
+                <div class="flex items-center space-x-2 overflow-x-auto pb-1 sm:pb-0">
+                    <button onclick="setFilter('all')" id="filter-all" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium transition bg-rose-600 text-white whitespace-nowrap">All Members</button>
+                    <button onclick="setFilter('pending')" id="filter-pending" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium transition bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 whitespace-nowrap">⚠️ Pending Punishments</button>
+                    <button onclick="setFilter('clear')" id="filter-clear" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium transition bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 whitespace-nowrap">✅ Clear Standing</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Members Container -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-bold tracking-tight">Members Directory</h2>
+                        <span id="member-count-badge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">0 active</span>
+                    </div>
+                    
+                    <div id="members-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Dynamic Member Cards Inserted Here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center">
+                        <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-3xl mb-4">📭</div>
+                        <h3 class="text-base font-semibold text-slate-800 dark:text-slate-200">No members found</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm">Get started by adding your first member to track strikes and punishments.</p>
+                    </div>
+                </div>
+
+                <!-- Activity Log Sidebar -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-bold tracking-tight">Activity History</h2>
+                        <button onclick="clearHistory()" class="text-xs font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400">Clear Log</button>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm h-[500px] flex flex-col">
+                        <div id="activity-log-container" class="flex-1 overflow-y-auto space-y-3 pr-1">
+                            <!-- Dynamic Activity Logs Inserted Here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="add-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold">Add New Member</h3>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form onsubmit="handleAddMember(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Member Name</label>
+                    <input type="text" id="new-member-name" required placeholder="e.g. Alex Morgan" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Initial Strikes (Optional)</label>
+                    <input type="number" id="new-member-strikes" min="0" value="0" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                </div>
+                <div class="flex items-center justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-rose-600/25 transition">Save Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Auth / Admin Access Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold">Authority Sign-In</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Sign in with Google or enter Admin Access Code</p>
+                </div>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Google Sign-In button -->
+            <button onclick="signInWithGoogle()" class="w-full py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl font-medium text-sm flex items-center justify-center space-x-2 transition shadow-sm">
+                <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.1 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9c-.3-.9-.5-1.9-.5-3z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.1L1.9 16c1.8 3.7 5.6 7 10.1 7z"/></svg>
+                <span>Sign in with Google</span>
+            </button>
+
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                <span class="flex-shrink mx-4 text-xs text-slate-400 uppercase tracking-wider">or Admin Passcode</span>
+                <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+            </div>
+
+            <form onsubmit="handlePasscodeSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admin Passcode</label>
+                    <input type="password" id="admin-passcode-input" required placeholder="Enter passcode..." class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm rounded-xl shadow-lg shadow-rose-600/25 transition">Verify & Unlock Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Notification Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'strike-tracker-pro';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "demo", projectId: "demo" };
+
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.warn("Firebase offline/demo mode active");
+        }
+
+        // Global State
+        window.appState = {
+            members: [
+                { id: '1', name: 'Jordan Lee', lifetimeStrikes: 5, currentStrikes: 5, createdAt: new Date(Date.now() - 86400000 * 2).toISOString() },
+                { id: '2', name: 'Taylor Swift', lifetimeStrikes: 4, currentStrikes: 4, createdAt: new Date(Date.now() - 86400000 * 5).toISOString() },
+                { id: '3', name: 'Sam Smith', lifetimeStrikes: 1, currentStrikes: 1, createdAt: new Date(Date.now() - 86400000 * 1).toISOString() }
+            ],
+            history: [
+                { id: 'h1', text: 'Jordan Lee accumulated 5 strikes (2 pending punishments)', time: '2 days ago', type: 'punishment' },
+                { id: 'h2', text: 'Taylor Swift accumulated 4 strikes (1 pending punishment)', time: '1 day ago', type: 'punishment' }
+            ],
+            filter: 'all',
+            searchQuery: '',
+            currentUser: null,
+            isAdmin: false,
+            adminEmails: ['admin@striketracker.com', 'authority@striketracker.com'],
+            correctPasscode: 'unlock'
+        };
+
+        // Theme management
+        window.toggleDarkMode = function() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('strike_tracker_theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+        };
+
+        if (localStorage.getItem('strike_tracker_theme') === 'dark' || (!localStorage.getItem('strike_tracker_theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('theme-icon').textContent = '☀️';
+        }
+
+        // Toast notifications
+        window.showToast = function(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-xl text-sm font-medium text-white flex items-center space-x-2 transform translate-y-2 opacity-0 transition-all duration-300 ${
+                type === 'error' ? 'bg-rose-600' : type === 'success' ? 'bg-emerald-600' : 'bg-slate-800'
+            }`;
+            toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '⚠️' : 'ℹ️'}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        // Auth Actions
+        window.handleAuthAction = function() {
+            if (window.appState.currentUser) {
+                if (auth) {
+                    signOut(auth).then(() => {
+                        window.appState.currentUser = null;
+                        window.appState.isAdmin = false;
+                        updateAuthUI();
+                        showToast('Signed out successfully', 'info');
+                    });
+                } else {
+                    window.appState.currentUser = null;
+                    window.appState.isAdmin = false;
+                    updateAuthUI();
+                    showToast('Signed out successfully', 'info');
+                }
+            } else {
+                document.getElementById('auth-modal').classList.remove('hidden');
+            }
+        };
+
+        window.closeAuthModal = function() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        };
+
+        window.signInWithGoogle = async function() {
+            if (!auth) {
+                // Fallback simulation for demo
+                window.appState.currentUser = { email: 'admin@striketracker.com', displayName: 'Authority Admin' };
+                window.appState.isAdmin = true;
+                closeAuthModal();
+                updateAuthUI();
+                showToast('Signed in as Admin via Google!', 'success');
+                render();
+                return;
+            }
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                window.appState.currentUser = user;
+                // Check if admin email or whitelist
+                window.appState.isAdmin = window.appState.adminEmails.includes(user.email) || user.email.endsWith('@admin.com') || localStorage.getItem('is_admin_override') === 'true';
+                closeAuthModal();
+                updateAuthUI();
+                showToast(`Welcome back, ${user.displayName || user.email}!`, 'success');
+                render();
+            } catch (err) {
+                showToast('Google Sign-In failed: ' + err.message, 'error');
+            }
+        };
+
+        window.handlePasscodeSubmit = function(e) {
+            e.preventDefault();
+            const code = document.getElementById('admin-passcode-input').value.trim();
+            if (code === window.appState.correctPasscode) {
+                window.appState.currentUser = { email: 'passcode.admin@local', displayName: 'Admin Authority' };
+                window.appState.isAdmin = true;
+                localStorage.setItem('is_admin_override', 'true');
+                closeAuthModal();
+                updateAuthUI();
+                showToast('Admin authority unlocked!', 'success');
+                render();
+            } else {
+                showToast('Incorrect Admin Passcode! Hint: try "unlock"', 'error');
+            }
+        };
+
+        function updateAuthUI() {
+            const userInfo = document.getElementById('user-info');
+            const userDisplayName = document.getElementById('user-display-name');
+            const adminBadge = document.getElementById('admin-badge');
+            const authBtn = document.getElementById('auth-action-btn');
+            const addMemberBtn = document.getElementById('add-member-btn');
+
+            if (window.appState.currentUser) {
+                userInfo.classList.remove('hidden');
+                userInfo.classList.add('flex');
+                userDisplayName.textContent = window.appState.currentUser.displayName || window.appState.currentUser.email;
+                if (window.appState.isAdmin) {
+                    adminBadge.classList.remove('hidden');
+                    authBtn.textContent = 'Sign Out';
+                    authBtn.className = 'inline-flex items-center px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium text-sm rounded-xl transition';
+                    addMemberBtn.classList.remove('hidden');
+                } else {
+                    adminBadge.classList.add('hidden');
+                    authBtn.textContent = 'Sign Out';
+                    authBtn.className = 'inline-flex items-center px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium text-sm rounded-xl transition';
+                    addMemberBtn.classList.add('hidden');
+                }
+            } else {
+                userInfo.classList.remove('flex');
+                userInfo.classList.add('hidden');
+                adminBadge.classList.add('hidden');
+                authBtn.textContent = 'Sign In / Admin';
+                authBtn.className = 'inline-flex items-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm rounded-xl shadow-lg shadow-rose-600/25 transition';
+                addMemberBtn.classList.add('hidden');
+            }
+            render();
+        }
+
+        // Modal Controls
+        window.openAddModal = function() {
+            if (!window.appState.isAdmin) {
+                showToast('Access Denied: Only administrators can add members.', 'error');
+                return;
+            }
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('new-member-name').focus();
+        };
+
+        window.closeAddModal = function() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('new-member-name').value = '';
+            document.getElementById('new-member-strikes').value = '0';
+        };
+
+        // Add Member Logic
+        window.handleAddMember = function(e) {
+            e.preventDefault();
+            if (!window.appState.isAdmin) {
+                showToast('Access Denied', 'error');
+                return;
+            }
+            const name = document.getElementById('new-member-name').value.trim();
+            const initialStrikes = parseInt(document.getElementById('new-member-strikes').value) || 0;
+            
+            if (!name) return;
+
+            const newMember = {
+                id: Date.now().toString(),
+                name,
+                lifetimeStrikes: initialStrikes,
+                currentStrikes: initialStrikes,
+                createdAt: new Date().toISOString()
+            };
+
+            window.appState.members.push(newMember);
+            const pendingCount = Math.floor(initialStrikes / 3);
+            addHistoryItem(`Added member "${name}" with ${initialStrikes} strike(s) (${pendingCount} pending punishment(s))`, 'info');
+            closeAddModal();
+            saveState();
+            showToast(`Added ${name} successfully!`, 'success');
+        };
+
+        // Update Strikes (+1 or -1)
+        window.updateStrikes = function(memberId, delta) {
+            if (!window.appState.isAdmin) {
+                showToast('Access Denied: Admin authority required to modify strikes.', 'error');
+                return;
+            }
+
+            const member = window.appState.members.find(m => m.id === memberId);
+            if (!member) return;
+
+            if (delta > 0) {
+                member.lifetimeStrikes += 1;
+                member.currentStrikes += 1;
+                const prevPending = Math.floor((member.currentStrikes - 1) / 3);
+                const newPending = Math.floor(member.currentStrikes / 3);
+                
+                if (newPending > prevPending) {
+                    addHistoryItem(`⚠️ ${member.name} reached ${member.currentStrikes} active strikes (${newPending} punishment(s) pending)!`, 'punishment');
+                    showToast(`${member.name} triggered a punishment!`, 'error');
+                } else {
+                    addHistoryItem(`Added 1 strike to ${member.name} (Active: ${member.currentStrikes}, Lifetime: ${member.lifetimeStrikes})`, 'info');
+                    showToast(`Added strike to ${member.name}`, 'success');
+                }
+            } else if (delta < 0) {
+                if (member.currentStrikes > 0) {
+                    member.currentStrikes -= 1;
+                    member.lifetimeStrikes = Math.max(0, member.lifetimeStrikes - 1);
+                    addHistoryItem(`Removed 1 active strike from ${member.name}`, 'info');
+                    showToast(`Removed strike from ${member.name}`, 'info');
+                } else {
+                    showToast(`${member.name} already has 0 active strikes!`, 'error');
+                    return;
+                }
+            }
+            saveState();
+        };
+
+        // Punishment Completed (Consumes 3 strikes, rolling over remainder)
+        window.completePunishment = function(memberId) {
+            if (!window.appState.isAdmin) {
+                showToast('Access Denied: Admin authority required to confirm punishments.', 'error');
+                return;
+            }
+
+            const member = window.appState.members.find(m => m.id === memberId);
+            if (!member) return;
+
+            if (member.currentStrikes < 3) {
+                showToast(`${member.name} does not have enough active strikes for a punishment!`, 'error');
+                return;
+            }
+
+            member.currentStrikes -= 3; // Consume exactly 3 strikes for the punishment, rolling over any remainder
+            
+            addHistoryItem(`✅ Punishment completed for ${member.name}. 3 strikes cleared, ${member.currentStrikes} rollover strike(s) remaining. (Lifetime total: ${member.lifetimeStrikes})`, 'clear');
+            saveState();
+            showToast(`Punishment cleared for ${member.name}! ${member.currentStrikes} rollover strike(s) remaining.`, 'success');
+        };
+
+        // Delete Member
+        window.deleteMember = function(memberId) {
+            if (!window.appState.isAdmin) {
+                showToast('Access Denied', 'error');
+                return;
+            }
+
+            const member = window.appState.members.find(m => m.id === memberId);
+            if (!member) return;
+
+            if (confirm(`Are you sure you want to delete ${member.name}?`)) {
+                window.appState.members = window.appState.members.filter(m => m.id !== memberId);
+                addHistoryItem(`Deleted member ${member.name}`, 'info');
+                saveState();
+                showToast(`Deleted ${member.name}`, 'info');
+            }
+        };
+
+        function addHistoryItem(text, type) {
+            const newItem = {
+                id: Date.now().toString(),
+                text,
+                time: 'Just now',
+                type
+            };
+            window.appState.history.unshift(newItem);
+            if (window.appState.history.length > 50) window.appState.history.pop();
+        }
+
+        window.clearHistory = function() {
+            if (!window.appState.isAdmin) {
+                showToast('Access Denied', 'error');
+                return;
+            }
+            window.appState.history = [];
+            saveState();
+            showToast('Activity log cleared', 'info');
+        };
+
+        window.setFilter = function(filterType) {
+            window.appState.filter = filterType;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = 'filter-btn px-4 py-2 rounded-xl text-sm font-medium transition bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 whitespace-nowrap';
+            });
+            const activeBtn = document.getElementById(`filter-${filterType}`);
+            activeBtn.className = 'filter-btn px-4 py-2 rounded-xl text-sm font-medium transition bg-rose-600 text-white whitespace-nowrap';
+            render();
+        };
+
+        window.handleSearch = function() {
+            window.appState.searchQuery = document.getElementById('search-input').value.toLowerCase();
+            render();
+        };
+
+        function saveState() {
+            localStorage.setItem('strike_tracker_members_v2', JSON.stringify(window.appState.members));
+            localStorage.setItem('strike_tracker_history_v2', JSON.stringify(window.appState.history));
+            render();
+        }
+
+        function loadState() {
+            const savedMembers = localStorage.getItem('strike_tracker_members_v2');
+            const savedHistory = localStorage.getItem('strike_tracker_history_v2');
+            if (savedMembers) window.appState.members = JSON.parse(savedMembers);
+            if (savedHistory) window.appState.history = JSON.parse(savedHistory);
+        }
+
+        function render() {
+            const filteredMembers = window.appState.members.filter(m => {
+                const matchesSearch = m.name.toLowerCase().includes(window.appState.searchQuery);
+                if (!matchesSearch) return false;
+                const pendingPunishments = Math.floor(m.currentStrikes / 3);
+                if (window.appState.filter === 'pending') return pendingPunishments > 0;
+                if (window.appState.filter === 'clear') return pendingPunishments === 0;
+                return true;
+            });
+
+            const totalMembers = window.appState.members.length;
+            const totalPendingPunishments = window.appState.members.reduce((acc, m) => acc + Math.floor(m.currentStrikes / 3), 0);
+            const totalLifetimeStrikes = window.appState.members.reduce((acc, m) => acc + m.lifetimeStrikes, 0);
+
+            document.getElementById('stat-total-members').textContent = totalMembers;
+            document.getElementById('stat-pending-punishments').textContent = totalPendingPunishments;
+            document.getElementById('stat-total-strikes').textContent = totalLifetimeStrikes;
+            document.getElementById('member-count-badge').textContent = `${filteredMembers.length} shown`;
+
+            const grid = document.getElementById('members-grid');
+            const emptyState = document.getElementById('empty-state');
+            const isAdmin = window.appState.isAdmin;
+
+            if (filteredMembers.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                grid.innerHTML = filteredMembers.map(m => {
+                    const pendingPunishments = Math.floor(m.currentStrikes / 3);
+                    const remainderStrikes = m.currentStrikes % 3;
+                    const progressPercent = (remainderStrikes / 3) * 100;
+                    const hasPending = pendingPunishments > 0;
+
+                    return `
+                        <div class="bg-white dark:bg-slate-900 border ${hasPending ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-slate-200 dark:border-slate-800'} rounded-2xl p-5 shadow-sm flex flex-col justify-between transition-all hover:shadow-md">
+                            <div>
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300">
+                                            ${m.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-slate-900 dark:text-slate-100">${escapeHtml(m.name)}</h3>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400">Lifetime Total: <span class="font-semibold text-slate-700 dark:text-slate-300">${m.lifetimeStrikes} strikes</span></p>
+                                        </div>
+                                    </div>
+                                    ${isAdmin ? `
+                                        <button onclick="deleteMember('${m.id}')" class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1" title="Delete Member">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    ` : ''}
+                                </div>
+
+                                <!-- Status Badge & Rollover Info -->
+                                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Active Strikes: <strong class="text-slate-700 dark:text-slate-300">${m.currentStrikes}</strong></span>
+                                        <span class="text-xs font-bold px-2 py-0.5 rounded-md ${hasPending ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 animate-pulse' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}">
+                                            ${hasPending ? `⚠️ ${pendingPunishments} Punishment${pendingPunishments > 1 ? 's' : ''} Pending` : `${remainderStrikes} / 3 Toward Next`}
+                                        </span>
+                                    </div>
+
+                                    ${hasPending && remainderStrikes > 0 ? `
+                                        <div class="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-lg">
+                                            ⚡ ${remainderStrikes} rollover strike(s) carrying into next tier.
+                                        </div>
+                                    ` : ''}
+
+                                    <!-- Progress Bar -->
+                                    <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                                        <div class="bg-gradient-to-r from-amber-500 to-rose-600 h-2 rounded-full transition-all duration-300" style="width: ${hasPending ? '100%' : progressPercent + '%'}"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                                ${isAdmin ? `
+                                    <div class="flex items-center space-x-1">
+                                        <button onclick="updateStrikes('${m.id}', -1)" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-sm flex items-center justify-center transition" title="Remove Strike">-</button>
+                                        <button onclick="updateStrikes('${m.id}', 1)" class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 font-bold text-sm flex items-center justify-center transition" title="Add Strike">+</button>
+                                    </div>
+                                    ${hasPending ? `
+                                        <button onclick="completePunishment('${m.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-md shadow-emerald-600/20 transition flex items-center space-x-1">
+                                            <span>✅ Complete Punishment</span>
+                                        </button>
+                                    ` : `
+                                        <span class="text-xs text-slate-400 font-medium">In good standing</span>
+                                    `}
+                                ` : `
+                                    <span class="text-xs text-slate-400 italic">View-only mode (Sign in as Admin to edit)</span>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const logContainer = document.getElementById('activity-log-container');
+            if (window.appState.history.length === 0) {
+                logContainer.innerHTML = `<div class="text-center py-12 text-slate-400 text-sm">No activity recorded yet.</div>`;
+            } else {
+                logContainer.innerHTML = window.appState.history.map(item => `
+                    <div class="flex items-start space-x-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs">
+                        <span class="text-base">${item.type === 'punishment' ? '⚠️' : item.type === 'clear' ? '✅' : 'ℹ️'}</span>
+                        <div class="flex-1">
+                            <p class="text-slate-800 dark:text-slate-200 font-medium">${escapeHtml(item.text)}</p>
+                            <span class="text-[10px] text-slate-400 mt-0.5 block">${item.time}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        window.onload = function() {
+            loadState();
+            if (auth) {
+                onAuthStateChanged(auth, user => {
+                    if (user) {
+                        window.appState.currentUser = user;
+                        window.appState.isAdmin = window.appState.adminEmails.includes(user.email) || user.email.endsWith('@admin.com') || localStorage.getItem('is_admin_override') === 'true';
+                    }
+                    updateAuthUI();
+                });
+            } else {
+                if (localStorage.getItem('is_admin_override') === 'true') {
+                    window.appState.currentUser = { email: 'passcode.admin@local', displayName: 'Admin Authority' };
+                    window.appState.isAdmin = true;
+                }
+                updateAuthUI();
+            }
+        };
+    </script>
+</body>
+</html>
